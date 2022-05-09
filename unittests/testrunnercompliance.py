@@ -15,6 +15,7 @@ from archivist.archivist import Archivist
 from archivist.compliance import Compliance
 from archivist.compliance_policies import CompliancePolicy
 from archivist.logger import set_logger
+from archivist.runner import Runner
 
 if "TEST_DEBUG" in environ and environ["TEST_DEBUG"]:
     set_logger(environ["TEST_DEBUG"])
@@ -105,6 +106,7 @@ class TestRunnerCompliance(TestCase):
 
     def setUp(self):
         self.arch = Archivist("url", "authauthauth")
+        self.runner = Runner(self.arch)
 
     def tearDown(self):
         self.arch.close()
@@ -122,7 +124,7 @@ class TestRunnerCompliance(TestCase):
             mock_compliance_policies_create.return_value = CompliancePolicy(
                 **COMPLIANCE_POLICIES_RESPONSE
             )
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -146,7 +148,7 @@ class TestRunnerCompliance(TestCase):
                 COMPLIANCE_POLICIES_CREATE
             )
             self.assertEqual(
-                self.arch.runner.deletions[IDENTITY],
+                self.runner.deletions[IDENTITY],
                 self.arch.compliance_policies.delete,
                 msg="Incorrect compliance_policy delete_method",
             )
@@ -160,13 +162,13 @@ class TestRunnerCompliance(TestCase):
         with mock.patch.object(
             self.arch.compliance, "compliant_at"
         ) as mock_compliance_compliant_at, mock.patch.object(
-            self.arch.runner, "identity"
+            self.runner, "identity"
         ) as mock_identity:
             mock_identity.return_value = COMPLIANCE_COMPLIANT_AT_ID
             mock_compliance_compliant_at.return_value = Compliance(
                 **COMPLIANCE_RESPONSE
             )
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -189,7 +191,7 @@ class TestRunnerCompliance(TestCase):
                 COMPLIANCE_COMPLIANT_AT_ID
             )
             self.assertEqual(
-                len(self.arch.runner.entities),
+                len(self.runner.entities),
                 0,
                 msg="Incorrect compliance created",
             )
@@ -202,13 +204,13 @@ class TestRunnerCompliance(TestCase):
         with mock.patch.object(
             self.arch.compliance, "compliant_at"
         ) as mock_compliance_compliant_at, mock.patch.object(
-            self.arch.runner, "identity"
+            self.runner, "identity"
         ) as mock_identity:
             mock_identity.return_value = COMPLIANCE_COMPLIANT_AT_ID
             mock_compliance_compliant_at.return_value = Compliance(
                 **COMPLIANCE_FALSE_RESPONSE
             )
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -233,7 +235,7 @@ class TestRunnerCompliance(TestCase):
                 report=True,
             )
             self.assertEqual(
-                len(self.arch.runner.entities),
+                len(self.runner.entities),
                 0,
                 msg="Incorrect compliance created",
             )

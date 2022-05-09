@@ -61,7 +61,6 @@ from .compliance_policies import _CompliancePoliciesClient
 from .composite import _CompositeClient
 from .events import _EventsRestricted
 from .locations import _LocationsClient
-from .runner import _Runner
 from .sboms import _SBOMSClient
 from .subjects import _SubjectsClient
 from .tenancies import _TenanciesClient
@@ -98,7 +97,6 @@ class Archivist(ArchivistPublic):  # pylint: disable=too-many-instance-attribute
         "composite": _CompositeClient,
         "events": _EventsRestricted,
         "locations": _LocationsClient,
-        "runner": _Runner,
         "sboms": _SBOMSClient,
         "subjects": _SubjectsClient,
         "tenancies": _TenanciesClient,
@@ -110,8 +108,8 @@ class Archivist(ArchivistPublic):  # pylint: disable=too-many-instance-attribute
         auth: str | Tuple[str, str] | None,
         *,
         fixtures: Optional[dict[str, dict[Any, Any]]] = None,
-        verify: bool = True,
-        max_time: float = MAX_TIME,
+        verify: Optional[bool] = True,
+        max_time: Optional[float] = MAX_TIME,
     ):
         super().__init__(
             fixtures=fixtures,
@@ -145,7 +143,6 @@ class Archivist(ArchivistPublic):  # pylint: disable=too-many-instance-attribute
         self.composite: _CompositeClient
         self.events: _EventsRestricted
         self.locations: _LocationsClient
-        self.runner: _Runner
         self.sboms: _SBOMSClient
         self.subjects: _SubjectsClient
         self.tenancies: _TenanciesClient

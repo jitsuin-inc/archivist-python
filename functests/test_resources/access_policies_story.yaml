@@ -1,0 +1,43 @@
+---
+steps:
+  - step:
+      action: ACCESS_POLICIES_CREATE
+      description: Create a access_policies entity.
+      print_response: true
+      access_policy_label: An access policy
+    display_name: An access policy
+    description: An access policy
+
+  - step:
+      action: ACCESS_POLICIES_COUNT
+      description: Count all access_policies
+      print_response: true
+
+  - step:
+      action: ACCESS_POLICIES_LIST
+      description: List all access_policies
+      print_response: true
+
+  - step:
+      action: ACCESS_POLICIES_LIST_MATCHING_ASSETS
+      description: List assets that match an access_policy
+      print_response: true
+      access_policy_label: An access policy
+
+  - step:
+      action: ACCESS_POLICIES_LIST_MATCHING_ACCESS_POLICIES
+      description: List access policies that match an asset
+      print_response: true
+      asset_label: An asset
+
+  - step:
+      action: ACCESS_POLICIES_READ
+      description: Read access policy
+      print_response: true
+      access_policy_label: An access policy
+
+  - step:
+      action: ACCESS_POLICIES_UPDATE
+      description: Update an access_policies entity.
+      print_response: true
+      access_policy_label: An access policy

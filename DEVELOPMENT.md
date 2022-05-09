@@ -121,7 +121,7 @@ they be run in a production environment.
 Set 2 environment variables and execute:
 
 ```bash
-export TEST_ARCHIVIST="https://app.rkvst.io"
+export TEST_ARCHIVIST="https://app.rkvst-dev.io"
 export TEST_AUTHTOKEN_FILENAME=credentials/authtoken
 task functests
 ```
@@ -332,4 +332,30 @@ git merge upstream/main
 git log
 git branch -d dev/githubUserHandle/some-proposed-fix
 ```
+
+#### Some notes on adding a new endpoint
+
+Adding a new endpoint will involve the following steps:
+
+(for a new endpoint called widgets...)
+
+- edit archivist/constants.py
+- add archivist/widgets.py
+- add archivist/widget.py
+- edit archivist/runner.py
+- add unittests/testwidget.py
+- add unittests/testwidgets.py
+- add functests/execwidgets.py
+- add functests/test_resources/widgets_story.yaml
+- edit functests/execrunner.py
+- add examples/create_widget.py # and other examples as well
+- add notebooks/'Create Widgets....ipynb' # and other examples
+- add docs/create_widgets.rst
+- edit docs/index.rst
+- edit docs/getting_started.rst
+- add docs/runner/components/widgets.rst
+- edit docs/runner/components/index.rst
+- add docs/runner/demos/widgets.rst
+- edit docs/runner/demos/index.rst
+
 

@@ -121,11 +121,6 @@ class TestArchivist(TestCase):
             msg="Incorrect locations",
         )
         self.assertEqual(
-            str(arch.runner),
-            "Runner(https://app.rkvst.io)",
-            msg="Incorrect runner",
-        )
-        self.assertEqual(
             str(arch.sboms),
             "SBOMSClient(https://app.rkvst.io)",
             msg="Incorrect sboms",
