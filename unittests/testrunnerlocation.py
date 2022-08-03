@@ -13,11 +13,9 @@ from unittest import TestCase, mock
 
 from archivist.archivist import Archivist
 from archivist.locations import Location
-from archivist.constants import (
-    LOCATIONS_LABEL,
-)
-
+from archivist.constants import LOCATIONS_LABEL
 from archivist.logger import set_logger
+from archivist.runner import Runner
 
 if "TEST_DEBUG" in environ and environ["TEST_DEBUG"]:
     set_logger(environ["TEST_DEBUG"])
@@ -66,6 +64,7 @@ class TestRunnerLocationsCreate(TestCase):
 
     def setUp(self):
         self.arch = Archivist("url", "authauthauth")
+        self.runner = Runner(self.arch)
 
     @mock.patch("archivist.runner.time_sleep")
     def test_runner_locations_create(self, mock_sleep):
@@ -76,7 +75,7 @@ class TestRunnerLocationsCreate(TestCase):
             self.arch.locations, "create_if_not_exists"
         ) as mock_locations_create:
             mock_locations_create.return_value = Location(**LOCATIONS_RESPONSE)
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -93,7 +92,7 @@ class TestRunnerLocationsCreate(TestCase):
             )
             mock_locations_create.assert_called_once_with(LOCATIONS_CREATE)
             self.assertEqual(
-                self.arch.runner.entities["Existing Location"],
+                self.runner.entities["Existing Location"],
                 LOCATIONS_RESPONSE,
                 msg="Incorrect location created",
             )

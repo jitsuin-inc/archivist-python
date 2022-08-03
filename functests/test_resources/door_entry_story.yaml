@@ -10,6 +10,18 @@
 #
 steps:
   - step:
+      action: ACHIVIST_CREATE
+      description: Create an archivist connection
+      archivist_label: Auth token
+    url: !ENV ${ARCHIVIST_URL:https://app.rkvst.io}
+    auth_token: !ENV ${ARCHIVIST_AUTH_TOKEN}
+    auth_token_file: !ENV ${ARCHIVIST_AUTH_TOKEN_FILE}
+    client_id: !ENV ${ARCHIVIST_CLIENT_ID}
+    client_secret: !ENV ${ARCHIVIST_CLIENT_SECRET}
+    max_time: 300
+    verify: false
+
+  - step:
       action: ASSETS_CREATE_IF_NOT_EXISTS
       description: Create a door in Paris at Jitsuin offices.
       asset_label: Jitsuin Paris Front Door

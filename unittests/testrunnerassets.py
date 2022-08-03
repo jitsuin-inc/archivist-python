@@ -17,6 +17,7 @@ from archivist.constants import ASSET_BEHAVIOURS
 from archivist.errors import ArchivistInvalidOperationError
 from archivist.events import Event
 from archivist.logger import set_logger
+from archivist.runner import Runner
 
 if "TEST_DEBUG" in environ and environ["TEST_DEBUG"]:
     set_logger(environ["TEST_DEBUG"])
@@ -180,6 +181,7 @@ class TestRunnerAssetsCreate(TestCase):
 
     def setUp(self):
         self.arch = Archivist("https://app.rkvst.io", "authauthauth")
+        self.runner = Runner(self.arch)
 
     def tearDown(self):
         self.arch.close()
@@ -193,7 +195,7 @@ class TestRunnerAssetsCreate(TestCase):
             self.arch.assets, "create_from_data"
         ) as mock_assets_create:
             mock_assets_create.return_value = Asset(**ASSETS_RESPONSE)
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -211,7 +213,7 @@ class TestRunnerAssetsCreate(TestCase):
             )
             mock_assets_create.assert_called_once_with(ASSETS_CREATE_ARGS)
             self.assertEqual(
-                self.arch.runner.entities["Existing Asset"],
+                self.runner.entities["Existing Asset"],
                 ASSETS_RESPONSE,
                 msg="Incorrect asset created",
             )
@@ -226,7 +228,7 @@ class TestRunnerAssetsCreate(TestCase):
             self.arch.assets, "create_if_not_exists"
         ) as mock_assets_create:
             mock_assets_create.return_value = (Asset(**ASSETS_RESPONSE), True)
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -246,7 +248,7 @@ class TestRunnerAssetsCreate(TestCase):
                 ASSETS_CREATE_IF_NOT_EXISTS, **ASSETS_CONFIRM
             )
             self.assertEqual(
-                self.arch.runner.entities["Existing Asset"],
+                self.runner.entities["Existing Asset"],
                 ASSETS_RESPONSE,
                 msg="Incorrect asset created",
             )
@@ -260,11 +262,11 @@ class TestRunnerAssetsCreate(TestCase):
         with mock.patch.object(
             self.arch.events, "list"
         ) as mock_events_list, mock.patch.object(
-            self.arch.runner, "identity"
+            self.runner, "identity"
         ) as mock_identity:
             mock_identity.return_value = EVENTS_LIST_ASSET_ID
             mock_events_list.return_value = event_generator(2)
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -296,11 +298,11 @@ class TestRunnerAssetsCreate(TestCase):
         with mock.patch.object(
             self.arch.events, "count"
         ) as mock_events_count, mock.patch.object(
-            self.arch.runner, "identity"
+            self.runner, "identity"
         ) as mock_identity:
             mock_identity.return_value = EVENTS_LIST_ASSET_ID
             mock_events_count.return_value = 2
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {
@@ -333,7 +335,7 @@ class TestRunnerAssetsCreate(TestCase):
             self.arch.assets, "create_from_data"
         ) as mock_assets_create:
             mock_assets_create.return_value = Asset(**ASSETS_RESPONSE)
-            self.arch.runner.run_steps(
+            self.runner.run_steps(
                 {
                     "steps": [
                         {
@@ -361,7 +363,7 @@ class TestRunnerAssetsCreate(TestCase):
         ) as mock_assets_create:
             mock_assets_create.return_value = Asset(**ASSETS_RESPONSE)
             with self.assertRaises(ArchivistInvalidOperationError) as ex:
-                self.arch.runner.run_steps(
+                self.runner.run_steps(
                     {
                         "steps": [
                             {
@@ -385,7 +387,7 @@ class TestRunnerAssetsCreate(TestCase):
         ) as mock_events_create:
             mock_events_create.return_value = Event(**EVENT_RESPONSE)
             with self.assertRaises(ArchivistInvalidOperationError) as ex:
-                self.arch.runner.run_steps(
+                self.runner.run_steps(
                     {
                         "steps": [
                             {
@@ -411,7 +413,7 @@ class TestRunnerAssetsCreate(TestCase):
         ) as mock_events_create:
             mock_events_create.return_value = Event(**EVENT_RESPONSE)
             with self.assertRaises(ArchivistInvalidOperationError) as ex:
-                self.arch.runner.run_steps(
+                self.runner.run_steps(
                     {
                         "steps": [
                             {
@@ -436,7 +438,7 @@ class TestRunnerAssetsCreate(TestCase):
             self.arch.events, "create_from_data"
         ) as mock_events_create:
             mock_events_create.return_value = Event(**EVENT_RESPONSE)
-            self.arch.runner.run_steps(
+            self.runner.run_steps(
                 {
                     "steps": [
                         {
@@ -460,7 +462,7 @@ class TestRunnerAssetsCreate(TestCase):
         ) as mock_events_create:
             mock_events_create.return_value = Event(**EVENT_RESPONSE)
             with self.assertRaises(ArchivistInvalidOperationError) as ex:
-                self.arch.runner.run_steps(
+                self.runner.run_steps(
                     {
                         "steps": [
                             {
@@ -485,7 +487,7 @@ class TestRunnerAssetsCreate(TestCase):
         ) as mock_assets_create:
             mock_assets_create.return_value = Asset(**ASSETS_RESPONSE)
             with self.assertRaises(ArchivistInvalidOperationError) as ex:
-                self.arch.runner.run_steps(
+                self.runner.run_steps(
                     {
                         "steps": [
                             {
@@ -509,7 +511,7 @@ class TestRunnerAssetsCreate(TestCase):
             self.arch.assets, "create_from_data"
         ) as mock_assets_create:
             mock_assets_create.return_value = Asset(**ASSETS_RESPONSE)
-            self.arch.runner(
+            self.runner(
                 {
                     "steps": [
                         {

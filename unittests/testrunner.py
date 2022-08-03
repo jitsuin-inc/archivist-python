@@ -15,7 +15,7 @@ from archivist.archivist import Archivist
 from archivist.assets import Asset
 from archivist.constants import ASSET_BEHAVIOURS
 from archivist.logger import set_logger
-from archivist.runner import tree
+from archivist.runner import Runner, tree
 
 if "TEST_DEBUG" in environ and environ["TEST_DEBUG"]:
     set_logger(environ["TEST_DEBUG"])
@@ -57,13 +57,14 @@ class TestRunner(TestCase):
 
     def setUp(self):
         self.arch = Archivist("url", "authauthauth")
+        self.runner = Runner(self.arch)
 
     def test_runner_str(self):
         """
         Test runner str
         """
         self.assertEqual(
-            str(self.arch.runner),
+            str(self.runner),
             "Runner(url)",
             msg="Incorrect str",
         )
@@ -72,7 +73,7 @@ class TestRunner(TestCase):
         """
         Test runner asset_id
         """
-        runner = self.arch.runner
+        runner = self.runner
         runner.entities = tree()
         runner.entities[ASSET_NAME] = Asset(**ASSETS_RESPONSE)
         self.assertEqual(

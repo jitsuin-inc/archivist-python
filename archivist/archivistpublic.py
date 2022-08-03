@@ -80,8 +80,8 @@ class ArchivistPublic:  # pylint: disable=too-many-instance-attributes
         self,
         *,
         fixtures: Optional[dict[str, Any]] = None,
-        verify: bool = True,
-        max_time: float = MAX_TIME,
+        verify: Optional[bool] = True,
+        max_time: Optional[float] = MAX_TIME,
     ):
 
         self._verify = verify
@@ -133,12 +133,12 @@ class ArchivistPublic:  # pylint: disable=too-many-instance-attributes
         return ""
 
     @property
-    def verify(self) -> bool:
+    def verify(self) -> bool | None:
         """bool: Returns True if https connections are to be verified"""
         return self._verify
 
     @property
-    def max_time(self) -> float:
+    def max_time(self) -> float | None:
         """bool: Returns maximum time in seconds to wait for confirmation"""
         return self._max_time
 

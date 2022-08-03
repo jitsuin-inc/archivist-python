@@ -16,13 +16,14 @@ from uuid import UUID
 # pylint:disable=cyclic-import      # but pylint doesn't understand this feature
 # pylint:disable=missing-function-docstring
 # pylint:disable=protected-access
-from . import archivist
+from .archivist import Archivist
 from .errors import ArchivistError, ArchivistInvalidOperationError
+from .parser import get_auth
 
 LOGGER = getLogger(__name__)
 
 
-NOUNS = ("asset", "location", "subject")
+NOUNS = ("archivist", "access_policy", "asset", "location", "subject")
 
 
 def tree():
@@ -45,69 +46,114 @@ class _ActionMap(dict):
     #  use_asset_label = "asset_id"   = keyword argument
     #  use_asset_label = "-asset_id"   = keyword argument in first argumemt that is
     #                                    a dictionary
-    # similarly for location and subjects labels
+    # similarly for access_policy, location and subject labels
     #
-    def __init__(self, archivist_instance: archivist.Archivist):
+    def __init__(self, archivist_instance: Archivist):
         super().__init__()
         self._archivist = archivist_instance
 
+        self["ARCHIVIST_CREATE"] = {
+            "action": self.archivist_create,
+            "pos": ("url",),
+            "keywords": (
+                "auth_token",
+                "client_id",
+                "client_secret",
+                "max_time",
+                "verify",
+            ),
+            "set_archivist_label": True,
+        }
         # please keep in alphabetical order
+        self["ACCESS_POLICIES_COUNT"] = {
+            "action": archivist_instance.access_policies.count,
+            "keywords": ("display_name",),
+        }
+        self["ACCESS_POLICIES_CREATE"] = {
+            "action": archivist_instance.access_policies.create_from_data,
+            "delete": archivist_instance.access_policies.delete,
+            "set_access_policy_label": True,
+        }
+        self["ACCESS_POLICIES_LIST"] = {
+            "action": archivist_instance.access_policies.list,
+            "keywords": ("display_name",),
+        }
+        self["ACCESS_POLICIES_LIST_MATCHING_ASSETS"] = {
+            "action": archivist_instance.access_policies.list_matching_assets,
+        }
+        self["ACCESS_POLICIES_LIST_MATCHING_ACCESS_POLICIES"] = {
+            "action": archivist_instance.access_policies.list_matching_access_policies,
+            "use_asset_label": "add_arg_identity",
+        }
+        self["ACCESS_POLICIES_READ"] = {
+            "action": archivist_instance.access_policies.read,
+            "use_access_policy_label": "add_arg_identity",
+        }
+        self["ACCESS_POLICIES_UPDATE"] = {
+            "action": archivist_instance.access_policies.update,
+            "keywords": (
+                "display_name",
+                "filters",
+                "access_permissions",
+            ),
+            "use_access_policy_label": "add_arg_identity",
+        }
         self["ASSETS_ATTACHMENT_INFO"] = {
-            "action": self._archivist.attachments.info,
+            "action": archivist_instance.attachments.info,
             "use_asset_label": "add_arg_identity",
         }
         self["ASSETS_COUNT"] = {
-            "action": self._archivist.assets.count,
+            "action": archivist_instance.assets.count,
             "keywords": (
                 "props",
                 "attrs",
             ),
         }
         self["ASSETS_CREATE_IF_NOT_EXISTS"] = {
-            "action": self._archivist.assets.create_if_not_exists,
+            "action": archivist_instance.assets.create_if_not_exists,
             "keywords": ("confirm",),
             "set_asset_label": True,
             "use_location_label": "add_data_location_identity",
         }
         self["ASSETS_CREATE"] = {
-            "action": self._archivist.assets.create_from_data,
+            "action": archivist_instance.assets.create_from_data,
             "keywords": ("confirm",),
             "set_asset_label": True,
         }
         self["ASSETS_LIST"] = {
-            "action": self._archivist.assets.list,
+            "action": archivist_instance.assets.list,
             "keywords": (
                 "props",
                 "attrs",
             ),
         }
         self["ASSETS_WAIT_FOR_CONFIRMED"] = {
-            "action": self._archivist.assets.wait_for_confirmed,
+            "action": archivist_instance.assets.wait_for_confirmed,
             "keywords": (
                 "props",
                 "attrs",
             ),
         }
         self["COMPOSITE_ESTATE_INFO"] = {
-            "action": self._archivist.composite.estate_info,
+            "action": archivist_instance.composite.estate_info,
         }
         self["COMPLIANCE_POLICIES_CREATE"] = {
-            "action": self._archivist.compliance_policies.create_from_data,
-            "delete": self._archivist.compliance_policies.delete,
+            "action": archivist_instance.compliance_policies.create_from_data,
+            "delete": archivist_instance.compliance_policies.delete,
         }
         self["COMPLIANCE_COMPLIANT_AT"] = {
-            "action": self._archivist.compliance.compliant_at,
+            "action": archivist_instance.compliance.compliant_at,
             "keywords": ("report",),
             "use_asset_label": "add_arg_identity",
         }
         self["EVENTS_CREATE"] = {
-            "action": self._archivist.events.create_from_data,
+            "action": archivist_instance.events.create_from_data,
             "keywords": ("confirm",),
             "use_asset_label": "add_arg_identity",
             "use_location_label": "add_data_location_identity",
         }
         self["EVENTS_COUNT"] = {
-            "action": self._archivist.events.count,
+            "action": archivist_instance.events.count,
             "keywords": (
                 "asset_id",
                 "props",
@@ -117,7 +163,7 @@ class _ActionMap(dict):
             "use_asset_label": "add_kwarg_asset_identity",
         }
         self["EVENTS_LIST"] = {
-            "action": self._archivist.events.list,
+            "action": archivist_instance.events.list,
             "keywords": (
                 "asset_id",
                 "props",
@@ -127,56 +173,56 @@ class _ActionMap(dict):
             "use_asset_label": "add_kwarg_asset_identity",
         }
         self["LOCATIONS_COUNT"] = {
-            "action": self._archivist.locations.count,
+            "action": archivist_instance.locations.count,
             "keywords": (
                 "props",
                 "attrs",
             ),
         }
         self["LOCATIONS_CREATE_IF_NOT_EXISTS"] = {
-            "action": self._archivist.locations.create_if_not_exists,
+            "action": archivist_instance.locations.create_if_not_exists,
             "keywords": ("confirm",),
             "set_location_label": True,
         }
         self["LOCATIONS_LIST"] = {
-            "action": self._archivist.locations.list,
+            "action": archivist_instance.locations.list,
             "keywords": (
                 "props",
                 "attrs",
             ),
         }
         self["LOCATIONS_READ"] = {
-            "action": self._archivist.locations.read,
+            "action": archivist_instance.locations.read,
             "use_location_label": "add_arg_identity",
         }
         self["SUBJECTS_COUNT"] = {
-            "action": self._archivist.subjects.count,
+            "action": archivist_instance.subjects.count,
             "keywords": ("display_name",),
         }
         self["SUBJECTS_CREATE"] = {
-            "action": self._archivist.subjects.create_from_data,
-            "delete": self._archivist.subjects.delete,
+            "action": archivist_instance.subjects.create_from_data,
+            "delete": archivist_instance.subjects.delete,
             "set_subject_label": True,
         }
         self["SUBJECTS_CREATE_FROM_B64"] = {
-            "action": self._archivist.subjects.create_from_b64,
-            "delete": self._archivist.subjects.delete,
+            "action": archivist_instance.subjects.create_from_b64,
+            "delete": archivist_instance.subjects.delete,
             "set_subject_label": True,
         }
         self["SUBJECTS_DELETE"] = {
-            "action": self._archivist.subjects.delete,
+            "action": archivist_instance.subjects.delete,
             "use_subject_label": "add_arg_identity",
         }
         self["SUBJECTS_LIST"] = {
-            "action": self._archivist.subjects.list,
+            "action": archivist_instance.subjects.list,
             "keywords": ("display_name",),
         }
         self["SUBJECTS_READ"] = {
-            "action": self._archivist.subjects.read,
+            "action": archivist_instance.subjects.read,
             "use_subject_label": "add_arg_identity",
         }
         self["SUBJECTS_UPDATE"] = {
-            "action": self._archivist.subjects.update,
+            "action": archivist_instance.subjects.update,
             "keywords": (
                 "display_name",
                 "wallet_pub_key",
@@ -185,9 +231,28 @@ class _ActionMap(dict):
             "use_subject_label": "add_arg_identity",
         }
         self["SUBJECTS_WAIT_FOR_CONFIRMATION"] = {
-            "action": self._archivist.subjects.wait_for_confirmation,
+            "action": archivist_instance.subjects.wait_for_confirmation,
             "use_subject_label": "add_arg_identity",
         }
+
+    def archivist_create(
+        self,
+        url: str,
+        *,
+        auth_token: Optional[str] = None,
+        client_id: Optional[str] = None,
+        client_secret: Optional[str] = None,
+        max_time: Optional[float] = None,
+        verify: Optional[bool] = None,
+    ) -> Archivist:
+        print("url", url)
+        auth = get_auth(
+            auth_token=auth_token,
+            client_id=client_id,
+            client_secret=client_secret,
+        )
+        print("auth", auth)
+        return Archivist(url, auth, max_time=max_time, verify=verify)
 
     def ops(self, action_name: str) -> dict[str, Any]:
         """
@@ -211,6 +276,12 @@ class _ActionMap(dict):
         """
         return self.ops(action_name).get("keywords")
 
+    def pos(self, action_name: str) -> Tuple | None:
+        """
+        Get positional args in map
+        """
+        return self.ops(action_name).get("pos")
+
     def delete(self, action_name: str):
         """
         Get delete_method in map
@@ -225,7 +296,7 @@ class _ActionMap(dict):
 
 
 class _Step(dict):  # pylint:disable=too-many-instance-attributes
-    def __init__(self, archivist_instance: archivist.Archivist, **kwargs):
+    def __init__(self, archivist_instance: Archivist, **kwargs):
         super().__init__(**kwargs)
         self._archivist = archivist_instance
         self._args: list[Any] = []
@@ -235,6 +306,7 @@ class _Step(dict):  # pylint:disable=too-many-instance-attributes
         self._action_name = None
         self._data = {}
         self._keywords = None
+        self._pos = None
         self._delete_method = None
         self._labels = {}
         self._labels["use"] = {}
@@ -272,6 +344,10 @@ class _Step(dict):  # pylint:disable=too-many-instance-attributes
             for k in keywords:
                 if k in step:
                     self._kwargs[k] = step[k]
+
+        pos = self.pos
+        if pos is not None and len(pos) > 0:
+            self._args.extend(pos)
 
         # add the request body to the positional arguments...
         self._data = {k: v for k, v in step.items() if k not in keys}
@@ -379,6 +455,13 @@ class _Step(dict):  # pylint:disable=too-many-instance-attributes
         return self._keywords
 
     @property
+    def pos(self):
+        if self._pos is None:
+            self._pos = self.actions.pos(self.action_name)
+
+        return self._pos
+
+    @property
     def action_name(self):
         if self._action_name is None:
             action_name = self.get("action")
@@ -390,12 +473,12 @@ class _Step(dict):  # pylint:disable=too-many-instance-attributes
         return self._action_name
 
 
-class _Runner:
+class Runner:
     """
     ArchivistRunner takes a url, token_file.
     """
 
-    def __init__(self, archivist_instance: archivist.Archivist):
+    def __init__(self, archivist_instance: Archivist):
         self._archivist = archivist_instance
         self.entities: defaultdict
         self.deletions = {}

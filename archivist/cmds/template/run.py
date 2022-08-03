@@ -11,13 +11,14 @@ import yaml
 from ... import about
 
 # pylint:disable=cyclic-import      # but pylint doesn't understand this feature
-from ... import archivist as type_helper  # pylint:disable=unused-import
+from ...archivist import Archivist
+from ...runner import Runner
 
 
 LOGGER = getLogger(__name__)
 
 
-def run(arch: "type_helper.Archivist", args):
+def run(arch: Archivist, args):
 
     LOGGER.info("Using version %s of jitsuin-archivist", about.__version__)
     LOGGER.info("Namespace %s", args.namespace)
@@ -37,7 +38,7 @@ def run(arch: "type_helper.Archivist", args):
 
     # environment is injected into the template
     with open(args.values, "r", encoding="utf-8") as fd:
-        arch.runner(
+        Runner(arch)(
             yaml.load(
                 template.render(
                     yaml.load(
